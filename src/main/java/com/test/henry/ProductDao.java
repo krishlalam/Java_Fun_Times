@@ -1,6 +1,5 @@
 package com.test.henry;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,9 +30,9 @@ public interface ProductDao {
     /**
      * Add or Update Offer to Product
      * @param productName The Id of the Product we wish to update and Offer.
-     * @param productOffer the offer to add the product
+     * @param offer the offer to add the product
      */
-    void addOrUpdateProductOffer(String productName, ProductOffer productOffer);
+    void addOrUpdateProductOffer(String productName, Offer offer);
 
 
     /**
@@ -48,7 +47,5 @@ public interface ProductDao {
      * @param productName The Id of the Product.
      */
     void removeProduct(String productName);
-
-    Map<String, Product> getProducts();
 
 }

@@ -5,14 +5,14 @@ public class Product {
     private String name;
     private String unit;
     private double price;
-    private ProductOffer productOffer;
+    private Offer offer;
 
-    public Product(Long id, String name, String unit, double price,ProductOffer productOffer) {
+    public Product(Long id, String name, String unit, double price,Offer offer) {
         this.id = id;
         this.name = name;
         this.unit = unit;
         this.price = price;
-        this.productOffer = productOffer;
+        this.offer = offer;
     }
 
     public Long getId() {
@@ -31,8 +31,8 @@ public class Product {
         return price;
     }
 
-    public ProductOffer getProductOffer(){
-        return productOffer;
+    public Offer getOffer(){
+        return offer;
     }
 
     public void setId(Long id) {
@@ -51,7 +51,7 @@ public class Product {
         this.price = price;
     }
 
-    public void setProductOffer(ProductOffer productOffer) {
-        this.productOffer = productOffer;
+    public void setOffer(Offer offer) {
+        this.offer = offer;
     }
 }

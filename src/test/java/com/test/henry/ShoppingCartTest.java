@@ -6,27 +6,34 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
 
 public class ShoppingCartTest {
-    private ProductDao productDao;
     private ShoppingCart underTest;
+    private ProductService productService;
+    private ProductDao productDao;
+    private OfferDao offerDao;
 
     @Before
     public void setup() {
+        offerDao = new OfferDaoImpl();
         productDao = new ProductDaoImpl();
-        insertProductData();
-        underTest = new ShoppingCart(productDao);
+        productService = new ProductServiceImpl(productDao);
+        StubProductAndOfferData stubProductAndOfferData = new StubProductAndOfferData(productDao,offerDao);
+        stubProductAndOfferData.insertProductAndOfferData();
+        underTest = new ShoppingCart(productService);
     }
 
     @After
     public void tearDown() {
         productDao.clear();
+        offerDao.clear();
+        productService= null;
         underTest=null;
     }
 
@@ -78,16 +85,5 @@ public class ShoppingCartTest {
         shoppingCartItems.add("bread");
         assertEquals("1.97",underTest.calculateTotal(shoppingCartItems, LocalDate.now().plusDays(5)));
     }
-
-
-
-    private void insertProductData(){
-        productDao.save(new Product(1l, "soup", "tin", 0.65,ProductOffer.BUY_2_SOUP_HALF_LOAF));
-        productDao.save(new Product(2l, "bread", "loaf", 0.80,ProductOffer.NONE));
-        productDao.save(new Product(3l, "milk", "bottle", 1.30,ProductOffer.NONE));
-        productDao.save(new Product(4l, "apples", "single", 0.10,ProductOffer.TEN_PERCENT));
-    }
-
-
 
 }

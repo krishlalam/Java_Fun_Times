@@ -9,35 +9,35 @@ import java.util.stream.Collectors;
 
 public class ShoppingCart {
 
-    private final ProductDao productDao;
+    private final ProductService productService;
 
-    public ShoppingCart(ProductDao productDao) {
-        this.productDao = productDao;
+    public ShoppingCart(ProductService productService) {
+        this.productService = productService;
     }
 
-    public  Map<String, Long> checkoutQtys(List<Product> products) {
+    public  Map<String, Long> checkoutProductAndQtys(List<Product> products) {
         return products.stream()
                 .collect(Collectors.groupingBy(Product::getName, LinkedHashMap<String, Long>::new, Collectors.counting()));
 
     }
 
-    private List<ProductEntry> generateProductEntry(Map<String, Long> qtys,Map<String, Product> inventory , LocalDate localDate ) {
-        return qtys.entrySet().stream()
+    private List<ProductEntry> generateProductEntry(Map<String, Long> productAndQtys, LocalDate localDate ) {
+        return productAndQtys.entrySet().stream()
                 .map(entry -> {
-                    Product product = productDao.getProducts().get(entry.getKey());
-                    if (product.getProductOffer() == ProductOffer.NONE) {
+                    Product product = productService.getProductByName(entry.getKey());
+                    if (product.getOffer() == null || product.getOffer().getName().equals("NONE")) {
                         return new ProductEntry(product, entry.getValue(), product.getPrice(), 0);
                     }
-                    if (product.getProductOffer() == ProductOffer.BUY_2_SOUP_HALF_LOAF) {
+                    if (product.getOffer().getName().equals("BUY_2_SOUP_HALF_LOAF")) {
                         return new ProductEntry(product, entry.getValue(), product.getPrice(),
-                                product.getProductOffer().productOfferLamda.applyDiscount(product.getProductOffer().validFrom,product.getProductOffer().validTo, localDate,
+                                product.getOffer().getProductOfferLamda().applyDiscount(product.getOffer().getValidFrom(),product.getOffer().getValidTo(), localDate,
                                         entry.getValue(),
-                                        inventory.get(product.getProductOffer().discountedItemName).getPrice()));
+                                        productService.getProductByName(product.getOffer().getDiscountedItemName()).getPrice()));
                     } else {
                         return new ProductEntry(product,
                                 entry.getValue(),
                                 product.getPrice(),
-                                product.getProductOffer().productOfferLamda.applyDiscount(product.getProductOffer().validFrom,product.getProductOffer().validTo, localDate,
+                                product.getOffer().getProductOfferLamda().applyDiscount(product.getOffer().getValidFrom(),product.getOffer().getValidTo(), localDate,
                                         entry.getValue(), product.getPrice()));
                     }
                 }).collect(Collectors.toList());
@@ -45,14 +45,10 @@ public class ShoppingCart {
 
     public String calculateTotal(List<String> items, LocalDate localDate){
         List<Product> shoppingItems = new ArrayList<>();
-        items.stream().forEach(item -> shoppingItems.add(productDao.getProducts().get(item)));
-        Map<String, Long> checkouItems = checkoutQtys(shoppingItems);
-        List<ProductEntry> productEntries = generateProductEntry(checkouItems,productDao.getProducts(),localDate);
-        double total = productEntries.stream().mapToDouble(entry ->
-        {
-            return (entry.price * entry.qty) - entry.discountedPrice;
-        }).sum();
-
+        items.forEach(item -> shoppingItems.add(productService.getProductByName(item)));
+        Map<String, Long> checkoutItems = checkoutProductAndQtys(shoppingItems);
+        List<ProductEntry> productEntries = generateProductEntry(checkoutItems,localDate);
+        double total = productEntries.stream().mapToDouble(entry -> (entry.price * entry.qty) - entry.discountedPrice).sum();
         return String.format("%.2f",total);
     }
 
