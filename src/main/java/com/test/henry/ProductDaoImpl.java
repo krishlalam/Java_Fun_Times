@@ -24,26 +24,20 @@ public class ProductDaoImpl implements ProductDao{
     @Override
     public void save(Product product) {
         products.put(product.getName(), product);
-
     }
 
     @Override
-    public void addOrUpdateProductOffer(String productName, ProductOffer productOffer) {
-        products.get(productName).setProductOffer(productOffer);
+    public void addOrUpdateProductOffer(String productName, Offer offer) {
+        products.get(productName).setOffer(offer);
     }
 
     @Override
     public void removeProductOffer(String productName) {
-        products.get(productName).setProductOffer(ProductOffer.NONE);
+        products.get(productName).setOffer(null);
     }
 
     @Override
     public void removeProduct(String productName) {
         products.remove(productName);
-    }
-
-    @Override
-    public Map<String, Product> getProducts() {
-        return products;
     }
 }

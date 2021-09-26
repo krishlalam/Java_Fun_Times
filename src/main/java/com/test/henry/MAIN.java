@@ -9,9 +9,11 @@ public class MAIN {
 
     public static void main(String[] args) {
         ProductDao productDao = new ProductDaoImpl();
-        StubProductData stubProductData = new StubProductData(productDao);
-        stubProductData.insertProductData();
-        ShoppingCart shoppingCart = new ShoppingCart(productDao);
+        OfferDao offerDao = new OfferDaoImpl();
+        ProductService productService = new ProductServiceImpl(productDao);
+        StubProductAndOfferData stubProductData = new StubProductAndOfferData(productDao,offerDao);
+        stubProductData.insertProductAndOfferData();
+        ShoppingCart shoppingCart = new ShoppingCart(productService);
         System.out.println("Enter the product(bar codes to checkout and 'stop'  or press enter to checkout");
         List<String> items = new ArrayList<>();
         Scanner in = new Scanner(System.in);
