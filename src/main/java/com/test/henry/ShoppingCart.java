@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class ShoppingCart {
@@ -31,11 +32,12 @@ public class ShoppingCart {
                     if (product.getOffer().getName().equals("BUY_2_SOUP_HALF_LOAF")) {
                         return new ProductEntry(product, entry.getValue(), product.getPrice(),
                                 product.getOffer().getProductOfferLamda().applyDiscount(product.getOffer().getValidFrom(),product.getOffer().getValidTo(), localDate,
-                                        entry.getValue(),
+                                        entry.getValue(), // qty
                                         productService.getProductByName(product.getOffer().getDiscountedItemName()).getPrice()));
-                    } else {
+                    }
+                    else {
                         return new ProductEntry(product,
-                                entry.getValue(),
+                                entry.getValue(), // qty
                                 product.getPrice(),
                                 product.getOffer().getProductOfferLamda().applyDiscount(product.getOffer().getValidFrom(),product.getOffer().getValidTo(), localDate,
                                         entry.getValue(), product.getPrice()));
@@ -45,11 +47,16 @@ public class ShoppingCart {
 
     public String calculateTotal(List<String> items, LocalDate localDate){
         List<Product> shoppingItems = new ArrayList<>();
+        List<Double> discounts = new ArrayList<>();
         items.forEach(item -> shoppingItems.add(productService.getProductByName(item)));
         Map<String, Long> checkoutItems = checkoutProductAndQtys(shoppingItems);
         List<ProductEntry> productEntries = generateProductEntry(checkoutItems,localDate);
-        double total = productEntries.stream().mapToDouble(entry -> (entry.price * entry.qty) - entry.discountedPrice).sum();
-        return String.format("%.2f",total);
+        AtomicReference<Double> total = new AtomicReference<>(productEntries.stream().mapToDouble(entry -> {
+            discounts.add(entry.discountedPrice);
+            return (entry.price * entry.qty);
+        }).sum());
+        discounts.forEach(discount -> total.updateAndGet(v -> new Double((double) (v - discount))));
+        return String.format("%.2f", total.get());
     }
 
 }
